@@ -2,6 +2,9 @@ package com.springbootkafka.example.kafkaSpringConnection;
 
 import com.springbootkafka.example.kafkaSpringConnection.KafkaProducer.KafkaProducer;
 import com.springbootkafka.example.kafkaSpringConnection.model.Book;
+import org.springframework.kafka.support.SendResult;
+import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,5 +24,35 @@ public class KafkaController {
     public String publishMessage(@RequestBody Book book) {
         kafkaProducer.send(KAFKA_TOPIC,book);
         return "Publish successfully !!";
+    }
+
+    @PostMapping("/publishV2")
+    public void publishMessageCallback(@RequestBody Book book) {
+
+        ListenableFuture<SendResult<String,Book>> listenableFuture = kafkaProducer.sendDefault(KAFKA_TOPIC, book);
+        listenableFuture.addCallback(new ListenableFutureCallback<>() {
+            @Override
+            public void onFailure(Throwable ex) {
+                handleFailure(KAFKA_TOPIC, book.toString(), ex);
+            }
+
+            @Override
+            public void onSuccess(SendResult<String, Book> result) {
+                handleSuccess(KAFKA_TOPIC, book.toString());
+            }
+        });
+
+    }
+
+    private void handleSuccess(String key, String value){
+        System.out.println("Message Sent Successfully for the key : " + key + " and value is :" + value);
+    }
+
+    private void handleFailure(String key, String value, Throwable ex) {
+        try {
+            throw new Exception ("Error sending the message and ex: " + ex + " for the key : " + key+ " and value is :" + value);
+        } catch (Exception e) {
+            System.out.println("Error sending the message and ex: " + ex + " for the key : " + key+ " and value is :" + value);
+        }
     }
 }
