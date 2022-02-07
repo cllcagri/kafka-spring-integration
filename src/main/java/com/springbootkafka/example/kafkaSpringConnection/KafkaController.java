@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
+
 @RestController
 public class KafkaController {
 
@@ -42,6 +45,12 @@ public class KafkaController {
             }
         });
 
+    }
+
+    @PostMapping("/publishSync")
+    public String publishMessageSync(@RequestBody Book book) throws ExecutionException, InterruptedException {
+        SendResult<String, Book> result = kafkaProducer.sendSync(KAFKA_TOPIC, book);
+        return "Publish successfully !!  Result : " + result.toString();
     }
 
     private void handleSuccess(String key, String value){

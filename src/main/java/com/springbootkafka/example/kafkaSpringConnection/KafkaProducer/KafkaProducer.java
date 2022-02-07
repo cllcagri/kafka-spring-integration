@@ -7,6 +7,9 @@ import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
 import org.springframework.util.concurrent.ListenableFuture;
 
+import java.util.concurrent.ExecutionException;
+
+
 @Component
 public class KafkaProducer {
 
@@ -19,5 +22,15 @@ public class KafkaProducer {
 
     public ListenableFuture<SendResult<String,Book>> sendDefault(String topicName, Book book){
         return kafkaTemplate.send(topicName, book);
+    }
+
+    public SendResult<String, Book> sendSync(String topicName,Book book) throws ExecutionException, InterruptedException {
+        try {
+            return kafkaTemplate.send(topicName, book).get();
+        } catch (ExecutionException | InterruptedException ex) {
+            throw ex;
+        } catch (Exception ex) {
+           throw ex;
+        }
     }
 }
