@@ -1,6 +1,7 @@
 package com.springbootkafka.example.kafkaSpringConnection.KafkaProducer;
 
 import com.springbootkafka.example.kafkaSpringConnection.model.Book;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
@@ -32,5 +33,9 @@ public class KafkaProducer {
         } catch (Exception ex) {
            throw ex;
         }
+    }
+
+    public ListenableFuture<SendResult<String,Book>> sendProducer(ProducerRecord producerRecord){
+        return kafkaTemplate.send(producerRecord);
     }
 }
