@@ -6,13 +6,17 @@ import com.springbootkafka.example.kafkaSpringConnection.model.BookType;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.internals.RecordHeader;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -75,6 +79,16 @@ public class KafkaController {
                 handleSuccess(KAFKA_TOPIC, book.toString());
             }
         });
+    }
+
+    @PutMapping("/update/book")
+    public ResponseEntity<Book> putBookEvent(@RequestBody @Valid Book book) {
+
+        if(book.getIsbn() == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(book);
+
+        book.setBookType(BookType.UPDATE);
+        kafkaProducer.send(KAFKA_TOPIC,book);
+        return ResponseEntity.status(HttpStatus.OK).body(book);
     }
 
     private ProducerRecord<String, Book> buildProducerRecord(String key, Book value, String topic) {
